@@ -1,0 +1,51 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  auth-server:
+    build:
+      context: .
+      dockerfile: apps/auth-server/Dockerfile
+      args:
+        APP_NAME: auth-server
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/auth-db
+
+  event-server:
+    build:
+      context: .
+      dockerfile: apps/event-server/Dockerfile
+      args:
+        APP_NAME: event-server
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/event-db
+
+  gateway-server:
+    build:
+      context: .
+      dockerfile: apps/gateway-server/Dockerfile
+      args:
+        APP_NAME: gateway-server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/gateway-db
+
+volumes:
+  mongo-data:
